@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OOO — 2026.10.30 FRI – 11.4 WED / 新宿眼科画廊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&family=Zen+Kaku+Gothic+New:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #fafafa; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: #0a6cff; text-decoration: none; }
+  a:hover { color: #0e0e10; }
+  ::selection { background: #0a6cff; color: #fafafa; }
+  @keyframes oooSweep { from { transform: translateX(-45%); } to { transform: translateX(400%); } }
+  @keyframes oooCaret { 0%, 48% { opacity: 1; } 49%, 100% { opacity: 0; } }
+  @keyframes oooPulse { 0%, 100% { opacity: .32; } 50% { opacity: 1; } }
+  @keyframes oooFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes oooRise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes oooSheet { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes oooScanRule { 0% { left: -22%; } 100% { left: 100%; } }
+
+  /* v1's notification-to-mail sequence, in the original OOO palette. */
+  html { scroll-padding-top: 120px; scrollbar-color: #b8b7b3 #f2f1ee; }
+  a, [role="button"], button { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid #0a6cff; outline-offset: 5px; }
+  .ooo-skip { position: fixed; top: 42px; left: 12px; z-index: 150; padding: 12px 16px; background: #0e0e10; color: #fafafa; transform: translateY(calc(-100% - 50px)); }
+  .ooo-skip:focus { transform: translateY(0); color: #fafafa; }
+  #ooo-hero { height: 360svh; position: relative; }
+  .ooo-stage { position: sticky; top: 34px; height: calc(100svh - 60px); min-height: 0; overflow: hidden; display: grid; place-items: center; background: #fafafa; }
+  .ooo-atmosphere { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 18% 4%, #fafafa 0%, transparent 65%), linear-gradient(155deg, #f0f0ee, #e4e6e5 55%, #efefed); }
+  .ooo-stage-content { position: relative; width: 100%; height: 100%; display: grid; place-items: center; padding: 30px 16px 96px; }
+  .ooo-arrival { position: relative; display: grid; place-items: center; width: 100%; animation: oooDrop 1s cubic-bezier(.16,1,.3,1) .55s both; }
+  /* The selected soft label, with a stack that unfolds into navigation. */
+  .ooo-arrival-notification { width: min(292px, calc(100vw - 40px)); transform-origin: center; will-change: transform, opacity; }
+  .ooo-stack { position: relative; }
+  .ooo-stack::before, .ooo-stack::after { content: ''; position: absolute; inset: 8px 8px -8px; border-radius: 18px; background: #f5f6f4; box-shadow: 0 2px 4px rgba(26,34,28,.05); transition: transform .35s cubic-bezier(.16,1,.3,1), opacity .2s ease; pointer-events: none; }
+  .ooo-stack::before { inset: 16px 16px -16px; background: #d9dcd9; }
+  .ooo-label { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 8px; border: 0; border-radius: 18px; background: #fff; color: #101112; text-align: left; font-family: inherit; box-shadow: 0 7px 20px rgba(29,36,36,.04); }
+  .ooo-app-icon { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 12px; background: #101112; color: #fff; }
+  .ooo-app-icon svg { width: 27px; height: 27px; stroke-width: 1.25px; }
+  .ooo-notification-copy { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; padding-right: 8px; }
+  .ooo-notification-title { font: 400 16px/1.2 'Outfit', sans-serif; letter-spacing: -.01em; }
+  .ooo-notification-text { font: 400 11px/1.2 'Outfit', sans-serif; color: #6e7074; }
+  .ooo-notification-count { position: absolute; top: -9px; right: -9px; display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #101112; color: #fff; font: 400 12px/1 'Outfit', sans-serif; transition: opacity .18s ease, transform .18s ease; }
+  #ooo-notification[data-open="true"] .ooo-notification-count { opacity: 0; transform: scale(.7); }
+  .ooo-hero-trigger { appearance: none; cursor: pointer; }
+  #ooo-notification { position: fixed; top: 48px; right: 20px; z-index: 90; width: min(292px, calc(100vw - 40px)); transition: opacity .5s cubic-bezier(.16,1,.3,1), transform .5s cubic-bezier(.16,1,.3,1); }
+  .ooo-notification-trigger { appearance: none; cursor: pointer; user-select: none; transition: box-shadow .25s ease; }
+  .ooo-notification-trigger:hover { box-shadow: 0 10px 26px rgba(29,36,36,.08); }
+  #ooo-notification[data-open="true"] .ooo-stack::before, #ooo-notification[data-open="true"] .ooo-stack::after { opacity: 0; transform: translateY(-10px) scale(.97); }
+  .ooo-menu-panel { position: relative; display: grid; grid-template-rows: 0fr; visibility: hidden; pointer-events: none; transition: grid-template-rows .38s cubic-bezier(.22,1,.36,1), visibility 0s .38s; }
+  #ooo-notification[data-open="true"] .ooo-menu-panel { grid-template-rows: 1fr; visibility: visible; pointer-events: auto; transition-delay: 0s; }
+  .ooo-menu-clip { min-height: 0; overflow: hidden; }
+  .ooo-notification-menu { display: flex; flex-direction: column; gap: 8px; padding: 8px 0 16px; max-height: calc(100svh - 144px); overflow-y: auto; }
+  .ooo-notification-item { display: flex; align-items: center; gap: 12px; padding: 7px 8px; min-height: 59px; flex: none; border-radius: 15px; background: #fff; color: #101112; opacity: 0; transform: translateY(calc(-16px * var(--ooo-order))) scale(.96); transition: opacity .18s ease, transform .4s cubic-bezier(.16,1,.3,1), background .18s ease; }
+  #ooo-notification[data-open="true"] .ooo-notification-item { opacity: 1; transform: translateY(0) scale(1); transition-delay: calc(var(--ooo-order) * 45ms), calc(var(--ooo-order) * 45ms), 0s; }
+  .ooo-notification-item:hover, .ooo-notification-item:focus-visible { background: #f3f4f2; color: #101112; }
+  .ooo-notification-item:focus-visible { outline-offset: -3px; }
+  .ooo-notification-item .ooo-app-icon { width: 39px; height: 39px; background: #f0f1f0; color: #26282a; }
+  .ooo-notification-item .ooo-app-icon svg { width: 20px; height: 20px; stroke-width: 1.4px; }
+  .ooo-notification-item .ooo-notification-copy { gap: 3px; }
+  .ooo-notification-item .ooo-notification-title { font-size: 14px; }
+  .ooo-notification-item .ooo-notification-text { font-family: 'Zen Kaku Gothic New', sans-serif; }
+  .ooo-notification-arrow { width: 14px; height: 14px; margin-right: 6px; flex: none; color: #6b6d72; }
+  .ooo-mail-fit { position: absolute; width: min(1040px, calc(100vw - 56px)); transform: scale(var(--ooo-mail-fit, 1)); transform-origin: center; }
+  .ooo-mail { position: relative; width: 100%; overflow: clip; background: #fafafa; border: 1px solid rgba(14,14,16,.14); border-radius: 10px; box-shadow: 0 24px 65px rgba(14,14,16,.16); text-align: left; will-change: transform, opacity; }
+  .ooo-mail-chrome { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; background: #f2f1ee; border-bottom: 1px solid rgba(14,14,16,.11); }
+  .ooo-window-dot { width: 9px; height: 9px; border-radius: 50%; background: #0e0e10; flex: none; }
+  .ooo-window-dot + .ooo-window-dot { opacity: .38; }
+  .ooo-mail-window-title { flex: 1; margin-right: 43px; text-align: center; font: 10px 'JetBrains Mono', monospace; letter-spacing: .16em; color: #5a5a5e; }
+  .ooo-mail-toolbar { display: flex; align-items: center; gap: 26px; padding: 10px 22px; border-bottom: 1px solid rgba(14,14,16,.1); font: 13px 'Outfit', sans-serif; color: #5a5a5e; }
+  .ooo-mail-tool { display: inline-flex; align-items: center; gap: 6px; }
+  .ooo-mail-tool:first-child { color: #0a6cff; }
+  .ooo-mail-field { display: flex; align-items: center; gap: 24px; padding: 10px 22px; border-bottom: 1px solid rgba(14,14,16,.1); }
+  .ooo-field-label { flex: none; width: 62px; text-align: right; font: 12px 'Outfit', sans-serif; color: #6a6a6e; }
+  .ooo-recipient { font: 17px 'Outfit', sans-serif; }
+  .ooo-mail-subject { margin: 0; font: 400 46px/1 'Outfit', sans-serif; letter-spacing: .02em; }
+  .ooo-mail-body { padding: 22px 26px 25px 108px; }
+  .ooo-mail-reply { font-size: 20px; }
+  .ooo-mail-caret { display: block; width: 1.5px; height: 21px; background: #0a6cff; margin: 12px 0 16px; animation: oooCaret 1.1s steps(1) infinite; }
+  .ooo-mail-signature { border-top: 1px dashed #c3c3be; border-bottom: 1px dashed #c3c3be; padding: 15px 0; }
+  .ooo-mail-date { font: 300 clamp(20px, 2.5vw, 30px)/1.2 'Outfit', sans-serif; letter-spacing: -.01em; }
+  .ooo-mail-venue { font-size: 16px; line-height: 1.7; margin-top: 7px; }
+  .ooo-mail-hours { font: 11px/1.7 'JetBrains Mono', monospace; color: #6a6a6e; margin-top: 2px; }
+  .ooo-mail-artists { display: flex; flex-direction: column; gap: 2px; font: 16px/1.3 'Outfit', sans-serif; margin-top: 14px; }
+  .ooo-hero-meta { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px 26px; display: flex; align-items: baseline; gap: 8px 18px; flex-wrap: wrap; font: 10px/1.6 'JetBrains Mono', monospace; letter-spacing: .12em; color: #5a5a5e; }
+  .ooo-hero-date { color: #3a3a3e; }
+  .ooo-hero-scroll { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 0; background: transparent; color: #5a5a5e; cursor: pointer; }
+  .ooo-hero-scroll:hover { color: #0e0e10; }
+  .ooo-hero-scroll svg { width: 32px; height: 32px; }
+  .ooo-about-copy { text-align: justify; text-align-last: start; text-justify: inter-character; }
+  @keyframes oooDrop { from { opacity: 0; transform: translateY(-140px) scale(.94); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @media (max-width: 600px) {
+    .ooo-stage-content { padding: 96px 12px 112px; }
+    .ooo-hero-scroll { bottom: 42px; }
+    .ooo-mail-fit { width: calc(100vw - 28px); }
+    .ooo-mail-toolbar { gap: 22px; padding: 10px 16px; font-size: 12px; }
+    .ooo-mail-field { gap: 16px; padding: 10px 16px; }
+    .ooo-field-label { width: 46px; }
+    .ooo-mail-subject { font-size: 40px; }
+    .ooo-mail-body { padding: 20px 22px 24px; }
+    .ooo-mail-reply { font-size: 18px; }
+    .ooo-mail-date { max-width: 260px; font-size: 24px; line-height: 1.2; }
+    .ooo-mail-date span { display: block; margin-top: 2px; }
+    .ooo-mail-venue { font-size: 16px; }
+    .ooo-mail-hours { font-size: 10px; letter-spacing: -.025em; }
+    .ooo-hero-meta { padding: 12px 16px; gap: 3px 12px; font-size: 9px; letter-spacing: .06em; }
+    .ooo-status-bar { font-size: 8px !important; letter-spacing: .06em !important; gap: 6px !important; }
+  }
+  @media (max-width: 600px) and (max-height: 760px) {
+    .ooo-mail-chrome { height: 30px; }
+    .ooo-mail-toolbar, .ooo-mail-field { padding-top: 7px; padding-bottom: 7px; }
+    .ooo-mail-subject { font-size: 34px; }
+    .ooo-mail-body { padding: 14px 20px 16px; }
+    .ooo-mail-caret { height: 16px; margin: 6px 0 10px; }
+    .ooo-mail-signature { padding: 10px 0; }
+    .ooo-mail-date { font-size: 22px; }
+    .ooo-mail-artists { margin-top: 10px; font-size: 14px; }
+  }
+  @media (max-height: 660px) and (min-width: 601px) {
+    .ooo-mail-body { padding-top: 14px; padding-bottom: 16px; }
+    .ooo-mail-caret { height: 14px; margin: 7px 0 10px; }
+    .ooo-mail-signature { padding: 10px 0; }
+    .ooo-mail-artists { flex-direction: row; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    #ooo-hero { height: auto; }
+    .ooo-stage { position: relative; top: 0; min-height: 0; }
+    .ooo-arrival-notification { display: none; }
+    .ooo-mail { opacity: 1 !important; transform: none !important; visibility: visible !important; }
+  }
+
+  /* Exhibition information: the selected date-led layout. */
+  .ooo-info-content { color: #111315; }
+  .ooo-info-range { --ooo-date-size: clamp(40px, 8vw, 88px); display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 30px; border-bottom: 1px solid #111315; }
+  .ooo-info-date { display: flex; flex-direction: column; gap: 12px; flex: none; font: 400 var(--ooo-date-size)/1 'Outfit', sans-serif; letter-spacing: -.035em; }
+  .ooo-info-date small { color: #656a6c; font: 400 clamp(13px, 1.4vw, 18px)/1.4 'Outfit', sans-serif; letter-spacing: 0; }
+  .ooo-info-range-rule { flex: 1; max-width: 24%; height: 1px; margin-top: calc(var(--ooo-date-size) * .54); background: #111315; }
+  .ooo-info-meta { display: flex; justify-content: space-between; padding-top: 14px; color: #656a6c; font: 400 clamp(14px, 1.4vw, 18px)/1.4 'Outfit', sans-serif; }
+  .ooo-info-details { display: flex; flex-direction: column; gap: 36px; margin-top: 36px; }
+  .ooo-info-hours { font: 400 clamp(28px, 4vw, 52px)/1.2 'Outfit', sans-serif; letter-spacing: -.025em; }
+  .ooo-info-hours-note { margin: 16px 0 0; color: #656a6c; font-size: clamp(14px, 1.5vw, 18px); line-height: 1.85; }
+  .ooo-info-venue { margin: 0; font-size: clamp(23px, 2.8vw, 34px); font-weight: 400; line-height: 1.4; letter-spacing: .02em; }
+  .ooo-info-address { margin: 12px 0 0; color: #656a6c; font-size: clamp(14px, 1.5vw, 18px); line-height: 1.7; }
+  .ooo-info-admission { margin: 16px 0 0; font-size: clamp(14px, 1.5vw, 18px); line-height: 1.5; }
+
+  .ooo-visit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(18px, 3vw, 44px); align-items: start; }
+  .ooo-visit-details { min-width: 0; }
+  .ooo-visit-map { min-width: 0; }
+  .ooo-map-preview { width: 100%; cursor: zoom-in; background: #fff; border: 1px solid rgba(14,14,16,.12); border-radius: 6px; padding: clamp(12px, 2vw, 20px); }
+  .ooo-map-preview img { display: block; width: 100%; height: auto; }
+  .ooo-footer-grid { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); column-gap: clamp(26px, 4vw, 58px); row-gap: 14px; }
+  .ooo-footer-grid > div { display: grid; grid-template-rows: subgrid; grid-row: span 2; row-gap: 14px; min-width: 0; }
+  .ooo-footer-grid > div > * { grid-column: 1; align-self: start; }
+  .ooo-footer-grid > div > :nth-child(n + 2) { grid-row: 2; }
+  .ooo-footer-grid > div > :nth-child(3) { align-self: end; }
+  .ooo-footer-grid > div > a { justify-self: start; }
+  .ooo-footer-grid svg { flex: none; }
+  .ooo-footer { --footer-edge-inset: clamp(0px, (100vw - 1240px) / 2, 64px); }
+  .ooo-footer-grid > div:first-child { margin-left: var(--footer-edge-inset); }
+  .ooo-footer-bottom { position: relative; padding-left: var(--footer-edge-inset); }
+  .ooo-footer-bottom::before { content: ''; position: absolute; top: 0; left: var(--footer-edge-inset); right: var(--footer-edge-inset); border-top: 1px solid rgba(250,250,250,.16); }
+  @media (min-width: 1051px) {
+    .ooo-footer-grid > .ooo-footer-exhibition { width: max-content; justify-self: end; margin-right: var(--footer-edge-inset); }
+    .ooo-footer-wordmark { margin-right: -.055em; }
+  }
+  @media (max-width: 1050px) {
+    .ooo-footer-grid { row-gap: 32px; }
+    .ooo-footer-grid > div { grid-row: auto; grid-template-rows: auto auto auto; align-content: start; }
+    .ooo-footer-grid > div > :nth-child(n + 2) { grid-row: auto; align-self: start; }
+  }
+  @media (max-width: 760px) {
+    .ooo-visit-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  }
+
+  .ooo-detail-overlay { --ooo-detail-top: clamp(60px, 8svh, 96px); --ooo-detail-bottom: 28px; position: fixed; inset: 0; z-index: 120; display: flex; align-items: flex-start; justify-content: center; padding: var(--ooo-detail-top) 20px var(--ooo-detail-bottom); background: rgba(14,14,16,.72); backdrop-filter: blur(6px); animation: oooFade .24s ease both; }
+  .ooo-detail-window { position: relative; width: min(940px, 100%); max-height: calc(100svh - var(--ooo-detail-top) - var(--ooo-detail-bottom)); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; background: #fafafa; border-radius: 10px; animation: oooSheet .32s cubic-bezier(.16,1,.3,1) both; }
+  @media (max-width: 600px) {
+    .ooo-detail-overlay { --ooo-detail-top: 48px; --ooo-detail-bottom: 16px; padding-left: 12px; padding-right: 12px; }
+  }
+  @media (min-width: 900px) and (min-height: 760px) {
+    .ooo-mail-chrome { height: 42px; }
+    .ooo-mail-toolbar { padding: 12px 28px; font-size: 14px; }
+    .ooo-mail-field { gap: 28px; padding: 12px 28px; }
+    .ooo-field-label { width: 72px; font-size: 13px; }
+    .ooo-recipient { font-size: 19px; }
+    .ooo-mail-subject { font-size: 56px; }
+    .ooo-mail-body { padding: 26px 32px 30px 128px; }
+    .ooo-mail-reply { font-size: 24px; }
+    .ooo-mail-caret { height: 23px; margin: 14px 0 20px; }
+    .ooo-mail-signature { padding: 18px 0; }
+    .ooo-mail-date { font-size: 36px; }
+    .ooo-mail-venue { font-size: 18px; }
+    .ooo-mail-hours { font-size: 12px; }
+    .ooo-mail-artists { gap: 3px; font-size: 18px; margin-top: 18px; }
+  }
+
+</style>
+</helmet>
+
+<a class="ooo-skip" href="#about">展示概要へスキップ</a>
+<div style="font-family: 'Zen Kaku Gothic New', 'Outfit', sans-serif; color: #0e0e10; background: #fafafa; overflow-x: clip; padding-top: 34px; padding-bottom: 26px;">
+
+  <div style="position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 34px; display: flex; align-items: center; gap: 9px; padding: 0 13px; background: #f2f1ee; border-bottom: 1px solid rgba(14,14,16,.11);">
+    <span style="width: 9px; height: 9px; border-radius: 50%; background: #0e0e10; flex: none;"></span>
+    <span style="width: 9px; height: 9px; border-radius: 50%; background: #0e0e10; opacity: .38; flex: none;"></span>
+    <span style="width: 9px; height: 9px; border-radius: 50%; background: #0e0e10; opacity: .38; flex: none;"></span>
+    <span style="flex: 1; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: clamp(9.5px, 1vw, 11px); letter-spacing: .2em; color: #3a3a3e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">OOO — INBOX</span>
+    <span style="width: 46px; flex: none;"></span>
+  </div>
+
+  <div class="ooo-status-bar" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; height: 26px; display: flex; align-items: center; gap: 10px; padding: 0 13px; background: #f2f1ee; border-top: 1px solid rgba(14,14,16,.11); font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .16em; color: #6a6a6e;">
+    <span style="width: 6px; height: 6px; border-radius: 50%; background: #0a6cff; flex: none; animation: oooPulse 2.4s ease-in-out infinite;"></span>
+    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">AUTOMATIC REPLY IS ON</span>
+    <span style="margin-left: auto; white-space: nowrap;">NO SENDER FOUND</span>
+  </div>
+
+  <div id="ooo-notification" data-open="{{ menuOpen }}" aria-hidden="{{ notificationHidden }}" onMouseEnter="{{ hoverOpen }}" onMouseLeave="{{ hoverClose }}" onBlur="{{ notificationBlur }}" style="visibility: {{ notificationVisibility }}; opacity: {{ notifShown }}; transform: {{ notifShift }}; pointer-events: {{ notifEvents }};">
+    <div class="ooo-stack">
+      <button type="button" class="ooo-label ooo-notification-trigger" onClick="{{ notificationClick }}" aria-label="{{ notificationLabel }}" aria-expanded="{{ menuOpen }}" aria-controls="ooo-nav">
+        <span class="ooo-app-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.341 6.484A10 10 0 0 1 10.266 21.85M3.659 17.516A10 10 0 0 1 13.74 2.152" /><circle cx="12" cy="12" r="3" /><circle cx="19" cy="5" r="2" /><circle cx="5" cy="19" r="2" /></svg></span>
+        <span class="ooo-notification-copy"><span class="ooo-notification-title">OOO</span><span class="ooo-notification-text">{{ notificationText }}</span></span>
+        <span class="ooo-notification-count" aria-hidden="true">4</span>
+      </button>
+    </div>
+    <div class="ooo-menu-panel" aria-hidden="{{ menuHidden }}">
+      <div class="ooo-menu-clip">
+        <nav id="ooo-nav" class="ooo-notification-menu" aria-label="展示ナビゲーション">
+          <sc-for list="{{ nav }}" as="item" hint-placeholder-count="4">
+            <a class="ooo-notification-item" href="{{ item.href }}" onClick="{{ closeMenu }}" tabIndex="{{ menuTabIndex }}" style="--ooo-order: {{ item.order }};">
+              <span class="ooo-app-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ item.icon }}" /></svg></span>
+              <span class="ooo-notification-copy"><span class="ooo-notification-text">{{ item.ja }}</span><span class="ooo-notification-title">{{ item.title }}</span></span>
+              <svg class="ooo-notification-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10M7 17 17 7" /></svg>
+            </a>
+          </sc-for>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <header id="ooo-hero" data-screen-label="FIRST VIEW" aria-label="OOO 展覧会への自動返信">
+    <div class="ooo-stage">
+      <div class="ooo-atmosphere" style="opacity: {{ heroAtmosphere }};"></div>
+      <div class="ooo-stage-content">
+        <div class="ooo-arrival">
+          <div class="ooo-arrival-notification ooo-stack" aria-hidden="{{ heroNotifHidden }}" style="opacity: {{ heroNotifOpacity }}; transform: {{ heroNotifTransform }}; visibility: {{ heroNotifVisibility }};">
+            <button type="button" class="ooo-label ooo-hero-trigger" onClick="{{ advanceIntro }}" tabIndex="{{ heroNotifTabIndex }}" aria-label="OOO — I'm OOO today. メッセージを開く">
+              <span class="ooo-app-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.341 6.484A10 10 0 0 1 10.266 21.85M3.659 17.516A10 10 0 0 1 13.74 2.152" /><circle cx="12" cy="12" r="3" /><circle cx="19" cy="5" r="2" /><circle cx="5" cy="19" r="2" /></svg></span>
+        <span class="ooo-notification-copy"><span class="ooo-notification-title">OOO</span><span class="ooo-notification-text">I'm OOO today.</span></span>
+        <span class="ooo-notification-count" aria-hidden="true">4</span>
+            </button>
+          </div>
+          <div class="ooo-mail-fit">
+          <div class="ooo-mail" aria-hidden="{{ mailHidden }}" style="opacity: {{ mailOpacity }}; transform: {{ mailTransform }}; visibility: {{ mailVisibility }};">
+            <div class="ooo-mail-chrome">
+              <span class="ooo-window-dot"></span><span class="ooo-window-dot"></span><span class="ooo-window-dot"></span>
+              <span class="ooo-mail-window-title">NEW MESSAGE</span>
+            </div>
+            <div class="ooo-mail-toolbar" aria-hidden="true">
+              <span class="ooo-mail-tool"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="m3 3 18 9-18 9 4-9-4-9Zm4 9h14" /></svg>Send</span>
+              <span class="ooo-mail-tool"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7" /></svg>Discard</span>
+              <span class="ooo-mail-tool"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m8 13 7-7a3 3 0 0 1 4 4l-9 9a5 5 0 0 1-7-7l10-10M7 14l8-8" /></svg>Attach</span>
+            </div>
+            <div class="ooo-mail-field"><span class="ooo-field-label">To</span><span class="ooo-recipient">you</span></div>
+            <div class="ooo-mail-field"><span class="ooo-field-label">Subject</span><h1 class="ooo-mail-subject">OOO</h1></div>
+            <div class="ooo-mail-body">
+              <div class="ooo-mail-reply">I&rsquo;m OOO today.</div>
+              <span class="ooo-mail-caret" aria-hidden="true"></span>
+              <div class="ooo-mail-signature">
+                <div class="ooo-mail-date">2026.10.30 FRI. <span>&ndash; 2026.11.4 WED.</span></div>
+                <div class="ooo-mail-venue">新宿眼科画廊</div>
+                <div class="ooo-mail-hours">12:00&ndash;20:00 (LAST DAY &ndash;17:00)</div>
+                <div class="ooo-mail-artists"><span>Atsuya Tsuchida</span><span>Fuku Hirano</span><span>Masaya Shirai</span><span>Taito Fushimi</span></div>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+      <div class="ooo-hero-meta"><span class="ooo-hero-date">2026.10.30 &mdash; 11.04&nbsp; / &nbsp;新宿眼科画廊</span></div>
+      <button type="button" class="ooo-hero-scroll" onClick="{{ advanceIntro }}" aria-label="下へスクロール">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16m-6-6 6 6 6-6" /></svg>
+      </button>
+    </div>
+  </header>
+
+  <section tabIndex="-1" id="about" data-screen-label="ABOUT" style="padding: clamp(60px, 11vh, 130px) clamp(16px, 5vw, 64px) clamp(36px, 6vh, 70px); max-width: 1240px; margin: 0 auto;">
+    <div style="position: relative; overflow: hidden; display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid rgba(14,14,16,.85); padding-bottom: 11px; margin-bottom: clamp(26px, 5vh, 50px);">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .18em; color: #8a8a8e;">01</span>
+      <h2 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: clamp(14px, 1.6vw, 17px); font-weight: 500; letter-spacing: .22em;">ABOUT</h2>
+      <span style="font-size: 12.5px; color: #6a6a6e;">展示概要</span>
+      <span style="position: absolute; bottom: 0; width: 22%; height: 1px; background: linear-gradient(90deg, rgba(10,108,255,0), #0a6cff, rgba(10,108,255,0)); animation: oooScanRule 9s linear infinite;"></span>
+    </div>
+    <div class="ooo-about-copy" style="width: 100%; font-size: clamp(16px, 1.5vw, 18px); line-height: 2.05; color: #1a1a1e;">
+      <p style="margin: 0 0 1.5em;">“OOO”（オーオーオー）は、メールやチャットで不在を知らせる“Out of Office”の略として使われる。相手が不在のとき、送られたメッセージに対して、あらかじめ設定された文章が自動的に返される。返信はあるが、それに応答した人はいない。誰もいないにもかかわらず、何かがあるかのように、応答だけが続いていく。本展では、“OOO”が示すこの状態を、テクノロジーによってつくられた空洞として捉える。</p>
+      <p style="margin: 0 0 1.5em;">私たちの日常を支えるテクノロジーの多くもまた、この意味で“OOO”である。生成AIにプロンプトを入力すれば、私たちはただちに回答を受け取ることができる。しかし、その向こう側に、私たちの問いを受け取り、考え、言葉を返すひとりの「誰か」がいるわけではない。利便性や自動化が進むにつれて、ひとつの結果に至るまでに存在していた試行や判断、ためらいや逸脱といった過程は、しだいに意識されにくいものになっていく。</p>
+      <p style="margin: 0;">本展は、制作を通して、そうして見えなくなった部分に焦点をあてる。作家それぞれの視点から、それを引き延ばし、ずらし、組み替えることで、そこに別の応答や関わり方を生み出すことを目指す。“OOO”は、不在を知らせる記号であると同時に、テクノロジーによって見えなくなったものの所在を問い、それらに別の仕方で触れるための記号でもある。</p>
+    </div>
+  </section>
+
+  <section id="information" data-screen-label="INFORMATION" style="padding: clamp(40px, 7vh, 84px) clamp(16px, 5vw, 64px); max-width: 1240px; margin: 0 auto;">
+    <div style="position: relative; overflow: hidden; display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid rgba(14,14,16,.85); padding-bottom: 11px; margin-bottom: clamp(20px, 4vh, 38px);">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .18em; color: #8a8a8e;">02</span>
+      <h2 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: clamp(14px, 1.6vw, 17px); font-weight: 500; letter-spacing: .22em;">INFORMATION</h2>
+      <span style="font-size: 12.5px; color: #6a6a6e;">基本情報</span>
+      <span style="position: absolute; bottom: 0; width: 22%; height: 1px; background: linear-gradient(90deg, rgba(10,108,255,0), #0a6cff, rgba(10,108,255,0)); animation: oooScanRule 11s linear 1s infinite;"></span>
+    </div>
+    <div class="ooo-info-content">
+      <div class="ooo-info-range" aria-label="会期：2026年10月30日金曜日から11月4日水曜日">
+        <time class="ooo-info-date" datetime="2026-10-30">10.30<small>FRI</small></time>
+        <span class="ooo-info-range-rule" aria-hidden="true"></span>
+        <time class="ooo-info-date" datetime="2026-11-04">11.04<small>WED</small></time>
+      </div>
+      <div class="ooo-info-meta"><span>2026</span><span>OOO</span></div>
+      <div class="ooo-info-details">
+        <div>
+          <div class="ooo-info-hours">12:00&mdash;20:00</div>
+          <p class="ooo-info-hours-note">10.30&mdash;11.3<br />最終日 11.4 のみ 17:00まで</p>
+        </div>
+        <div>
+          <h3 class="ooo-info-venue">新宿眼科画廊</h3>
+          <p class="ooo-info-address">東京都新宿区新宿5-18-11</p>
+          <p class="ooo-info-admission">入場無料</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="creators" data-screen-label="CREATORS" style="padding: clamp(40px, 7vh, 84px) clamp(16px, 5vw, 64px); max-width: 1240px; margin: 0 auto;">
+    <div style="position: relative; overflow: hidden; display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid rgba(14,14,16,.85); padding-bottom: 11px; margin-bottom: clamp(20px, 4vh, 38px);">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .18em; color: #8a8a8e;">03</span>
+      <h2 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: clamp(14px, 1.6vw, 17px); font-weight: 500; letter-spacing: .22em;">CREATORS</h2>
+      <span style="font-size: 12.5px; color: #6a6a6e;">出展作家</span>
+      <span style="position: absolute; bottom: 0; width: 22%; height: 1px; background: linear-gradient(90deg, rgba(10,108,255,0), #0a6cff, rgba(10,108,255,0)); animation: oooScanRule 10s linear 2s infinite;"></span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 1fr)); gap: clamp(8px, 1.2vw, 14px);">
+      <div onClick="{{ open0 }}" role="button" tabIndex="0" style="cursor: pointer; background: #f2f1ee; border: 1px solid rgba(14,14,16,.1); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column;" style-hover="background: #0e0e10; color: #fafafa; border-color: #0e0e10;">
+        <div style="aspect-ratio: 1 / 1; overflow: hidden; background: #e3e2de;">
+          <img src="assets/artists/tsuchida.png" alt="土田 篤弥" style="width: 100%; height: 100%; object-fit: cover; display: block; filter: {{ photoFilter }};" />
+        </div>
+        <div style="padding: 13px 14px 15px; display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-family: 'Outfit', sans-serif; font-size: clamp(16px, 1.7vw, 19px); font-weight: 500; letter-spacing: -.01em; line-height: 1.2;">Atsuya Tsuchida</div>
+          <div style="font-size: 13px; opacity: .7;">土田 篤弥</div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .14em; opacity: .6;"><span>PROFILE</span><span>&rarr;</span></div>
+        </div>
+      </div>
+      <div onClick="{{ open1 }}" role="button" tabIndex="0" style="cursor: pointer; background: #f2f1ee; border: 1px solid rgba(14,14,16,.1); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column;" style-hover="background: #0e0e10; color: #fafafa; border-color: #0e0e10;">
+        <div style="aspect-ratio: 1 / 1; overflow: hidden; background: #e3e2de;">
+          <img src="assets/artists/hirano.png" alt="平野 福" style="width: 100%; height: 100%; object-fit: cover; display: block; filter: {{ photoFilter }};" />
+        </div>
+        <div style="padding: 13px 14px 15px; display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-family: 'Outfit', sans-serif; font-size: clamp(16px, 1.7vw, 19px); font-weight: 500; letter-spacing: -.01em; line-height: 1.2;">Fuku Hirano</div>
+          <div style="font-size: 13px; opacity: .7;">平野 福</div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .14em; opacity: .6;"><span>PROFILE</span><span>&rarr;</span></div>
+        </div>
+      </div>
+      <div onClick="{{ open2 }}" role="button" tabIndex="0" style="cursor: pointer; background: #f2f1ee; border: 1px solid rgba(14,14,16,.1); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column;" style-hover="background: #0e0e10; color: #fafafa; border-color: #0e0e10;">
+        <div style="aspect-ratio: 1 / 1; overflow: hidden; background: #e3e2de;">
+          <img src="assets/artists/shirai.png" alt="白井 雅也" style="width: 100%; height: 100%; object-fit: cover; display: block; filter: {{ photoFilter }};" />
+        </div>
+        <div style="padding: 13px 14px 15px; display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-family: 'Outfit', sans-serif; font-size: clamp(16px, 1.7vw, 19px); font-weight: 500; letter-spacing: -.01em; line-height: 1.2;">Masaya Shirai</div>
+          <div style="font-size: 13px; opacity: .7;">白井 雅也</div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .14em; opacity: .6;"><span>PROFILE</span><span>&rarr;</span></div>
+        </div>
+      </div>
+      <div onClick="{{ open3 }}" role="button" tabIndex="0" style="cursor: pointer; background: #f2f1ee; border: 1px solid rgba(14,14,16,.1); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column;" style-hover="background: #0e0e10; color: #fafafa; border-color: #0e0e10;">
+        <div style="aspect-ratio: 1 / 1; overflow: hidden; background: #e3e2de;">
+          <img src="assets/artists/fushimi.png" alt="伏見 太杜" style="width: 100%; height: 100%; object-fit: cover; display: block; filter: {{ photoFilter }};" />
+        </div>
+        <div style="padding: 13px 14px 15px; display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-family: 'Outfit', sans-serif; font-size: clamp(16px, 1.7vw, 19px); font-weight: 500; letter-spacing: -.01em; line-height: 1.2;">Taito Fushimi</div>
+          <div style="font-size: 13px; opacity: .7;">伏見 太杜</div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .14em; opacity: .6;"><span>PROFILE</span><span>&rarr;</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="visit" data-screen-label="VISIT" style="padding: clamp(40px, 7vh, 84px) clamp(16px, 5vw, 64px) clamp(56px, 9vh, 104px); max-width: 1240px; margin: 0 auto;">
+    <div style="position: relative; overflow: hidden; display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid rgba(14,14,16,.85); padding-bottom: 11px; margin-bottom: clamp(20px, 4vh, 38px);">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .18em; color: #8a8a8e;">04</span>
+      <h2 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: clamp(14px, 1.6vw, 17px); font-weight: 500; letter-spacing: .22em;">VISIT</h2>
+      <span style="font-size: 12.5px; color: #6a6a6e;">アクセス</span>
+      <span style="position: absolute; bottom: 0; width: 22%; height: 1px; background: linear-gradient(90deg, rgba(10,108,255,0), #0a6cff, rgba(10,108,255,0)); animation: oooScanRule 12s linear 3s infinite;"></span>
+    </div>
+    <div class="ooo-visit-grid">
+      <div class="ooo-visit-details">
+        <div style="font-size: clamp(22px, 2.6vw, 30px);">新宿眼科画廊</div>
+        <div style="font-size: 15px; line-height: 1.9; margin-top: 8px;">〒160-0022 東京都新宿区新宿5-18-11</div>
+        <div style="margin-top: 20px; display: flex; flex-direction: column; font-size: 14.5px;">
+          <div style="display: flex; gap: 14px; padding: 11px 0; border-top: 1px solid rgba(14,14,16,.14);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .1em; color: #8a8a8e; width: 56px; flex: none; padding-top: 4px;">JR</span><span>新宿駅 東口より徒歩 12分</span></div>
+          <div style="display: flex; gap: 14px; padding: 11px 0; border-top: 1px solid rgba(14,14,16,.14);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .1em; color: #8a8a8e; width: 56px; flex: none; padding-top: 4px;">METRO</span><span>東新宿駅より徒歩 6分</span></div>
+          <div style="display: flex; gap: 14px; padding: 11px 0; border-top: 1px solid rgba(14,14,16,.14); border-bottom: 1px solid rgba(14,14,16,.14);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .1em; color: #8a8a8e; width: 56px; flex: none; padding-top: 4px;">METRO</span><span>新宿三丁目駅より徒歩 7分</span></div>
+        </div>
+        <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px;">
+          <a href="https://maps.app.goo.gl/FyqXTdFkxtSN8CQy7" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid rgba(14,14,16,.22); border-radius: 999px; font-family: 'Outfit', sans-serif; font-size: 13px; letter-spacing: .04em; color: #0e0e10; white-space: nowrap;" style-hover="background: #0e0e10; color: #fafafa; border-color: #0e0e10;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M14 3h7v7h-2V6.4l-8.3 8.3-1.4-1.4L17.6 5H14V3zM5 5h5v2H6v11h11v-4h2v6H4V5h1z"></path></svg>
+            <span>GOOGLE MAP</span>
+          </a>
+          <a href="https://www.gankagarou.com/" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid rgba(14,14,16,.22); border-radius: 999px; font-family: 'Outfit', sans-serif; font-size: 13px; letter-spacing: .04em; color: #0e0e10; white-space: nowrap;" style-hover="background: #0e0e10; color: #fafafa; border-color: #0e0e10;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M14 3h7v7h-2V6.4l-8.3 8.3-1.4-1.4L17.6 5H14V3zM5 5h5v2H6v11h11v-4h2v6H4V5h1z"></path></svg>
+            <span>GALLERY SITE</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="ooo-visit-map">
+        <div class="ooo-map-preview" onClick="{{ openMap }}" role="button" tabIndex="0">
+          <img src="assets/map_thumb.png" alt="新宿眼科画廊 周辺地図" width="900" height="924" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="ooo-footer" style="background: #0e0e10; color: #fafafa; padding: clamp(36px, 6vh, 72px) clamp(16px, 5vw, 64px) clamp(24px, 4vh, 40px);">
+    <div class="ooo-footer-grid">
+      <div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .18em; color: rgba(250,250,250,.5);">VENUE</div>
+        <a href="https://www.gankagarou.com/" target="_blank" rel="noopener" style="display: inline-block; background: #fafafa; border-radius: 6px; padding: 12px 16px;">
+          <img src="assets/gankagarou_logo.jpg" alt="新宿眼科画廊" style="display: block; height: 46px; width: auto;" />
+        </a>
+        <div style="font-size: 13.5px; line-height: 1.8; color: rgba(250,250,250,.74);">〒160-0022 東京都新宿区新宿5-18-11</div>
+      </div>
+
+      <div class="ooo-footer-follow">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .18em; color: rgba(250,250,250,.5);">FOLLOW</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <a href="https://www.gankagarou.com/" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 16px; border: 1px solid rgba(250,250,250,.28); border-radius: 999px; color: #fafafa; font-size: 13.5px;" style-hover="background: #fafafa; color: #0e0e10; border-color: #fafafa;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M14 3h7v7h-2V6.4l-8.3 8.3-1.4-1.4L17.6 5H14V3zM5 5h5v2H6v11h11v-4h2v6H4V5h1z"></path></svg>
+            <span>新宿眼科画廊 WEB サイト</span>
+          </a>
+          <div style="display: inline-flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 16px; border: 1px dashed rgba(250,250,250,.3); border-radius: 999px; color: rgba(250,250,250,.55); font-size: 13.5px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7z"></path><path d="M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"></path><path d="M17.5 5.4a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z"></path></svg>
+            <span>OOO 公式 Instagram<span style="white-space: nowrap;">（未設定）</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ooo-footer-exhibition">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .18em; color: rgba(250,250,250,.5);">EXHIBITION</div>
+        <div class="ooo-footer-wordmark" style="font-family: 'Outfit', sans-serif; font-weight: 200; font-size: clamp(56px, 9vw, 92px); line-height: .9; transform: translateY(-.125em);">OOO</div>
+        <div style="font-family: 'Outfit', sans-serif; font-size: 14px; color: rgba(250,250,250,.78);">2026.10.30 FRI &ndash; 11.4 WED</div>
+      </div>
+    </div>
+    <div class="ooo-footer-bottom" style="max-width: 1240px; margin: clamp(26px, 4vh, 44px) auto 0; padding-top: 16px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .14em; color: rgba(250,250,250,.42);">&copy; OOO 2026</div>
+  </footer>
+
+  <sc-if value="{{ detailOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="ooo-detail-overlay" onClick="{{ closeDetail }}">
+      <div id="ooo-detail-dialog" role="dialog" aria-modal="true" aria-label="{{ detailName }}" tabIndex="-1" onClick="{{ stop }}" class="ooo-detail-window">
+        <div style="position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 9px; padding: 0 12px; height: 38px; background: #f2f1ee; border-bottom: 1px solid rgba(14,14,16,.11);">
+          <span style="width: 9px; height: 9px; border-radius: 50%; background: #0e0e10; flex: none;"></span>
+          <span style="width: 9px; height: 9px; border-radius: 50%; background: #0e0e10; opacity: .38; flex: none;"></span>
+          <span style="width: 9px; height: 9px; border-radius: 50%; background: #0e0e10; opacity: .38; flex: none;"></span>
+          <span style="flex: 1; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .18em; color: #3a3a3e;">{{ detailIndex }}</span>
+          <span style="width: 46px; flex: none;"></span>
+        </div>
+
+        <div style="padding: clamp(16px, 3vw, 32px);">
+          <div style="display: flex; gap: 8px; justify-content: flex-end; margin-bottom: clamp(10px, 2vh, 16px);">
+            <div onClick="{{ prevArtist }}" role="button" tabIndex="0" aria-label="前の作家" style="cursor: pointer; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(14,14,16,.18); display: flex; align-items: center; justify-content: center; font-size: 15px;" style-hover="background: #0e0e10; color: #fafafa;">&larr;</div>
+            <div onClick="{{ nextArtist }}" role="button" tabIndex="0" aria-label="次の作家" style="cursor: pointer; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(14,14,16,.18); display: flex; align-items: center; justify-content: center; font-size: 15px;" style-hover="background: #0e0e10; color: #fafafa;">&rarr;</div>
+            <div onClick="{{ closeDetail }}" role="button" tabIndex="0" aria-label="閉じる" style="cursor: pointer; min-width: 44px; height: 44px; padding: 0 16px; border-radius: 999px; background: #0e0e10; color: #fafafa; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 13px;">
+              <span style="font-size: 15px; line-height: 1;">&times;</span><span>閉じる</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: clamp(16px, 2.6vw, 34px); align-items: start;">
+            <div style="position: relative; width: 100%; max-width: 340px; aspect-ratio: 1 / 1; border-radius: 6px; overflow: hidden; background: #e3e2de;">
+              <img src="assets/artists/tsuchida.png" alt="土田 篤弥" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: {{ photoFilter }}; opacity: {{ show0 }};" />
+              <img src="assets/artists/hirano.png" alt="平野 福" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: {{ photoFilter }}; opacity: {{ show1 }};" />
+              <img src="assets/artists/shirai.png" alt="白井 雅也" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: {{ photoFilter }}; opacity: {{ show2 }};" />
+              <img src="assets/artists/fushimi.png" alt="伏見 太杜" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: {{ photoFilter }}; opacity: {{ show3 }};" />
+            </div>
+            <div>
+              <div style="font-family: 'Outfit', sans-serif; font-size: clamp(26px, 3.6vw, 40px); font-weight: 500; letter-spacing: -.02em; line-height: 1.1;">{{ detailName }}</div>
+              <div style="font-size: clamp(15px, 1.8vw, 18px); color: #4a4a4e; margin-top: 4px;">{{ detailJa }}</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .18em; color: #8a8a8e; margin-top: clamp(16px, 3vh, 24px);">PROFILE</div>
+              <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px; font-size: clamp(14px, 1.5vw, 15.5px); line-height: 1.95; text-wrap: pretty;">
+                <sc-for list="{{ detailLines }}" as="line" hint-placeholder-count="3">
+                  <div>{{ line }}</div>
+                </sc-for>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: clamp(16px, 3vh, 24px);">
+                <sc-for list="{{ detailLinks }}" as="l" hint-placeholder-count="2">
+                  <a href="{{ l.href }}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 15px; border: 1px solid rgba(14,14,16,.2); border-radius: 999px; color: #0e0e10; font-size: 13px; white-space: nowrap;" style-hover="background: #0e0e10; color: #fafafa; border-color: #0e0e10;">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
+                      <path d="{{ l.i1 }}"></path><path d="{{ l.i2 }}"></path><path d="{{ l.i3 }}"></path>
+                    </svg>
+                    <span>{{ l.label }}</span>
+                  </a>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ mapOpen }}" hint-placeholder-val="{{ false }}">
+    <div id="ooo-map-dialog" role="dialog" aria-modal="true" aria-label="新宿眼科画廊 周辺地図" tabIndex="-1" style="position: fixed; inset: 0; z-index: 130; background: #fafafa; animation: oooFade .2s ease both; display: flex; flex-direction: column;">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 13px; border-bottom: 1px solid rgba(14,14,16,.12); background: #f2f1ee;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .16em; color: #3a3a3e;">新宿眼科画廊 MAP</div>
+        <div onClick="{{ closeMap }}" role="button" tabIndex="0" aria-label="閉じる" style="margin-left: auto; cursor: pointer; min-height: 44px; padding: 0 18px; border-radius: 999px; background: #0e0e10; color: #fafafa; display: flex; align-items: center; gap: 7px; font-size: 13px;">
+          <span style="font-size: 15px; line-height: 1;">&times;</span><span>閉じる</span>
+        </div>
+      </div>
+      <div style="flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; background: #ffffff;">
+        <div style="width: max(880px, 100%); padding: 20px;">
+          <img src="assets/map_large.png" alt="新宿眼科画廊 周辺地図（拡大）" width="1700" height="1746" loading="lazy" style="display: block; width: 100%; height: auto;" />
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;menuStartOpen&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;メニュー&quot;}, &quot;photoTone&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;color&quot;, &quot;mono&quot;], &quot;default&quot;: &quot;color&quot;, &quot;tsType&quot;: &quot;\&quot;color\&quot; | \&quot;mono\&quot;&quot;, &quot;section&quot;: &quot;Creators&quot;}}">
+const ICON = {
+  web: ["M14 3h7v7h-2V6.4l-8.3 8.3-1.4-1.4L17.6 5H14V3zM5 5h5v2H6v11h11v-4h2v6H4V5h1z", "", ""],
+  ig: [
+    "M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7z",
+    "M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
+    "M17.5 5.4a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z"
+  ],
+  x: ["M18.9 2H22l-7.1 8.1L23.3 22h-6.6l-5.2-6.8L5.6 22H2.5l7.6-8.7L1.7 2h6.8l4.7 6.2L18.9 2zm-1.1 18h1.8L7.3 3.9H5.4L17.8 20z", "", ""]
+};
+const mk = (kind, label, href) => ({ label, href, i1: ICON[kind][0], i2: ICON[kind][1], i3: ICON[kind][2] });
+
+const ARTISTS = [
+  {
+    name: "Atsuya Tsuchida", ja: "土田 篤弥",
+    lines: [
+      "2003年生まれ。計算機と社会的身体の関係に着目し、情報科学と社会科学を横断する表現を行う。",
+      "プロジェクトごとに自律的に駆動するアルゴリズムやAIを独自開発し、映像、ビジュアライゼーション、音響などのメディウムと組み合わせて作品を制作する。",
+      "「Asia Digital Art Award FUKUOKA 2026」学生インタラクティブアート部門 優秀賞／SFC STUDENT AWARD 2025 受賞／令和8年度文化庁メディア芸術クリエイター育成支援事業 発表支援採択"
+    ],
+    links: [mk("web", "atsuyatsuchida.com", "https://www.atsuyatsuchida.com"), mk("ig", "@atsuyatsuchida", "https://instagram.com/atsuyatsuchida")]
+  },
+  {
+    name: "Fuku Hirano", ja: "平野 福",
+    lines: [
+      "2004年京都生まれ。現在、慶應義塾大学環境情報学部4年。脇田玲研究会（メディアアート）、宮代康丈研究会（哲学）に所属。",
+      "主な発表に「ZOU-NO-HANA FUTURESCAPE PROJECT 2023」（2023）や「つながる宇宙 ー放射線と私たちー」（2024）などがある。",
+      "現在は東京都美術館アートコミュニケーター「とびらー」としても活動し、子どもの鑑賞体験の設計やアートコミュニケーションの実践に従事している。"
+    ],
+    links: []
+  },
+  {
+    name: "Masaya Shirai", ja: "白井 雅也",
+    lines: [
+      "慶應義塾大学環境情報学部に在籍。廃墟のような曖昧で退廃的なものの美しさについて神経美学の観点から研究している。",
+      "特に、軍艦島、摩耶観光ホテルを対象に、廃墟になぜ人は美しさを見出すのか調査している。日本の廃墟にとどまらず、イギリスやフランスを中心にヨーロッパの廃墟にも着目し、文化間に置ける廃墟の鑑賞の仕方に興味がある。",
+      "また、アートワークやHuman Computer Intractionの分野を通して、場所性や人の身体性についても模索している。"
+    ],
+    links: [mk("x", "@masatrick_16", "https://x.com/masatrick_16"), mk("ig", "@masayashirai_0106", "https://instagram.com/masayashirai_0106")]
+  },
+  {
+    name: "Taito Fushimi", ja: "伏見 太杜",
+    lines: [
+      "2003年、愛知県生まれ。慶應義塾大学総合政策学部在籍。",
+      "音の空間性に関心を持ち、メディアテクノロジーを用いた作品制作を行う。",
+      "International Computer Music Conference 2026（ICMC 2026）採択／New Interfaces for Musical Expression 2026（NIME 2026）採択"
+    ],
+    links: [mk("web", "taitofushimi.com", "https://taitofushimi.com"), mk("ig", "@zikka_galette", "https://instagram.com/zikka_galette")]
+  }
+];
+
+const NAV = [
+  { order: 1, icon: "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2zM14 2v5a1 1 0 0 0 1 1h5M10 9H8M16 13H8M16 17H8", title: "ABOUT", ja: "展示概要", href: "#about" },
+  { order: 2, icon: "M8 2v4M16 2v4M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01", title: "INFORMATION", ja: "会期・会場・入場料", href: "#information" },
+  { order: 3, icon: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3.128a4 4 0 0 1 0 7.744M22 21v-2a4 4 0 0 0-3-3.87M13 7a4 4 0 1 1-8 0 4 4 0 1 1 8 0", title: "CREATORS", ja: "出展作家 4名", href: "#creators" },
+  { order: 4, icon: "M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0M15 10a3 3 0 1 1-6 0 3 3 0 1 1 6 0", title: "VISIT", ja: "地図・アクセス", href: "#visit" }
+];
+
+class Component extends DCLogic {
+  state = { p: 0, revealed: false, menuOpen: false, detail: null, mapOpen: false, reducedMotion: false };
+
+  componentDidMount() {
+    // Measure the unscaled mail so font loading and rotation also refit it.
+    const stageContent = document.querySelector(".ooo-stage-content");
+    const mailFit = document.querySelector(".ooo-mail-fit");
+    this.fitMail = () => {
+      if (!stageContent || !mailFit) return;
+      const style = getComputedStyle(stageContent);
+      const available = stageContent.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+      const scale = Math.min(1, Math.max(0, available - 2) / Math.max(1, mailFit.offsetHeight));
+      mailFit.style.setProperty("--ooo-mail-fit", String(scale));
+    };
+    this.mailResizeObserver = new ResizeObserver(this.fitMail);
+    if (stageContent) this.mailResizeObserver.observe(stageContent);
+    if (mailFit) this.mailResizeObserver.observe(mailFit);
+    this.fitMail();
+    this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    this.syncMotion = () => { this.setState({ reducedMotion: this.motionQuery.matches }); this.onScroll(); };
+    this.tick = () => {
+      this.scrollFrame = null;
+      const hero = document.getElementById("ooo-hero");
+      const stage = hero && hero.querySelector(".ooo-stage");
+      if (!hero || !stage) return;
+      const span = hero.offsetHeight - stage.offsetHeight;
+      const p = span > 0 ? Math.min(1, Math.max(0, (34 - hero.getBoundingClientRect().top) / span)) : 0;
+      const revealed = window.scrollY > Math.max(150, window.innerHeight * 0.4);
+      if (Math.abs(p - this.state.p) > 0.002 || revealed !== this.state.revealed) {
+        this.setState({ p, revealed, ...(!revealed && !this.props.menuStartOpen ? {menuOpen: false} : {}) });
+      }
+    };
+    this.onScroll = () => { if (this.scrollFrame == null) this.scrollFrame = requestAnimationFrame(this.tick); };
+    window.addEventListener("scroll", this.onScroll, { passive: true });
+    window.addEventListener("resize", this.onScroll);
+    this.motionQuery.addEventListener("change", this.syncMotion);
+    this.syncMotion();
+    if (this.props.menuStartOpen) this.setState({ menuOpen: true });
+    this.onKey = (e) => {
+      if (e.key === "Escape") {
+        if (this.state.mapOpen) this.closeMap();
+        else if (this.state.detail !== null) this.closeDetail();
+        else if (this.state.menuOpen) { clearTimeout(this.hoverTimer); this.setState({ menuOpen: false }, () => document.querySelector('.ooo-notification-trigger')?.focus({ preventScroll: true })); }
+      }
+      const dialog = document.getElementById(this.state.mapOpen ? "ooo-map-dialog" : "ooo-detail-dialog");
+      if (dialog && e.key === "Tab") {
+        const focusables = [...dialog.querySelectorAll('a[href], button, [tabindex="0"]')];
+        const first = focusables[0], last = focusables[focusables.length - 1];
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === dialog)) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) { e.preventDefault(); first?.focus(); }
+      }
+      if (this.state.detail !== null) {
+        if (e.key === "ArrowRight") { e.preventDefault(); this.step(1); }
+        if (e.key === "ArrowLeft") { e.preventDefault(); this.step(-1); }
+      }
+      if ((e.key === "Enter" || e.key === " ") && e.target.matches('[role="button"]')) { e.preventDefault(); e.target.click(); }
+    };
+    this.onOutside = (e) => {
+      const notification = document.getElementById("ooo-notification");
+      if (notification && !notification.contains(e.target)) { clearTimeout(this.hoverTimer); if (this.state.menuOpen) this.setState({ menuOpen: false }); }
+    };
+    window.addEventListener("keydown", this.onKey);
+    document.addEventListener("pointerdown", this.onOutside);
+  }
+
+  componentWillUnmount() {
+    this.mailResizeObserver?.disconnect();
+    clearTimeout(this.hoverTimer);
+    cancelAnimationFrame(this.scrollFrame);
+    window.removeEventListener("scroll", this.onScroll);
+    window.removeEventListener("resize", this.onScroll);
+    window.removeEventListener("keydown", this.onKey);
+    document.removeEventListener("pointerdown", this.onOutside);
+    this.motionQuery.removeEventListener("change", this.syncMotion);
+    this.lock(false);
+  }
+
+  lock(on) {
+    if (on) { this.previousOverflow = document.body.style.overflow; document.body.style.overflow = "hidden"; }
+    else document.body.style.overflow = this.previousOverflow || "";
+  }
+  focusDialog = () => {
+    const dialog = document.getElementById(this.state.mapOpen ? "ooo-map-dialog" : "ooo-detail-dialog");
+    dialog?.focus({ preventScroll: true });
+  };
+  restoreFocus = () => this.returnFocus?.focus({ preventScroll: true });
+  openArtist = (i) => {
+    this.returnFocus = document.activeElement;
+    this.lock(true);
+    clearTimeout(this.hoverTimer);
+    this.setState({ detail: i, menuOpen: false }, this.focusDialog);
+  };
+  closeDetail = () => { this.lock(false); this.setState({ detail: null }, this.restoreFocus); };
+  openMap = () => { this.returnFocus = document.activeElement; this.lock(true); this.setState({ mapOpen: true, menuOpen: false }, this.focusDialog); };
+  closeMap = () => { this.lock(false); this.setState({ mapOpen: false }, this.restoreFocus); };
+  step = (d) => this.setState(
+    (s) => ({ detail: (s.detail + d + ARTISTS.length) % ARTISTS.length }),
+    () => document.getElementById("ooo-detail-dialog")?.scrollTo({ top: 0, behavior: "instant" })
+  );
+
+  advanceIntro = () => {
+    clearTimeout(this.hoverTimer);
+    this.setState({ menuOpen: false });
+    const hero = document.getElementById("ooo-hero");
+    const stage = hero?.querySelector(".ooo-stage");
+    const about = document.getElementById("about");
+    if (!hero || !stage || !about) return;
+    const mailOpen = this.state.reducedMotion || this.state.p >= 0.36;
+    const top = mailOpen
+      ? window.scrollY + about.getBoundingClientRect().top - 120
+      : window.scrollY + hero.getBoundingClientRect().top - 34 + (hero.offsetHeight - stage.offsetHeight) * 0.5;
+    window.scrollTo({ top: Math.max(0, top), behavior: this.state.reducedMotion ? "instant" : "smooth" });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const shown = s.revealed || this.props.menuStartOpen === true || s.reducedMotion;
+    const introActive = s.reducedMotion ? !s.revealed : s.p < 1;
+    const di = s.detail;
+    const a = ARTISTS[di == null ? 0 : di];
+    const segment = (start, end) => Math.min(1, Math.max(0, (s.p - start) / (end - start)));
+    // Keep v1's original opening and departure timing.
+    const opening = s.reducedMotion ? 1 : segment(0.06, 0.36);
+    const departure = s.reducedMotion ? 0 : segment(0.82, 1);
+    const mailOpacity = Math.min(1, opening * 1.35) * (1 - departure);
+    return {
+      heroNotifOpacity: String(Math.max(0, 1 - opening * 1.6)),
+      heroNotifTransform: "scale(" + (1 + opening * 1.1).toFixed(3) + ") translateY(" + (-opening * 26).toFixed(1) + "px)",
+      heroNotifVisibility: opening < 0.625 && !s.reducedMotion ? "visible" : "hidden",
+      heroNotifHidden: opening >= 0.625 || s.reducedMotion,
+      heroNotifTabIndex: opening < 0.625 && !s.reducedMotion ? 0 : -1,
+      advanceIntro: this.advanceIntro,
+      mailOpacity: String(mailOpacity),
+      mailTransform: "scale(" + (0.9 + opening * 0.1 - departure * 0.06).toFixed(3) + ") translateY(" + ((1 - opening) * 34 - departure * 70).toFixed(1) + "px)",
+      mailVisibility: mailOpacity > 0.001 ? "visible" : "hidden",
+      mailHidden: mailOpacity <= 0.001,
+      heroAtmosphere: String(1 - departure),
+      nav: NAV,
+      menuOpen: s.menuOpen,
+      menuHidden: !s.menuOpen,
+      menuTabIndex: s.menuOpen ? 0 : -1,
+      notifShown: shown ? "1" : "0",
+      notifShift: shown ? "translateY(0)" : "translateY(-20px)",
+      notifEvents: shown ? "auto" : "none",
+      notificationHidden: !shown,
+      notificationVisibility: shown ? "visible" : "hidden",
+      notificationText: "4 notification",
+      notificationLabel: introActive ? (opening >= 1 ? "OOO — 展示概要へ進む" : "OOO — メッセージを開く") : "OOO 通知4件のメニュー",
+      hoverOpen: () => {
+        clearTimeout(this.hoverTimer);
+        if (shown && window.matchMedia("(hover: hover) and (pointer: fine)").matches) this.hoverTimer = setTimeout(() => this.setState({ menuOpen: true }), 100);
+      },
+      hoverClose: () => {
+        clearTimeout(this.hoverTimer);
+        this.hoverTimer = setTimeout(() => this.setState({ menuOpen: false }), 280);
+      },
+      notificationBlur: (e) => {
+        if (!e.currentTarget.contains(e.relatedTarget) && !e.currentTarget.matches(":hover")) {
+          clearTimeout(this.hoverTimer);
+          this.setState({ menuOpen: false });
+        }
+      },
+      notificationClick: () => {
+        if (introActive) this.advanceIntro();
+        else { clearTimeout(this.hoverTimer); this.setState((x) => ({ menuOpen: !x.menuOpen })); }
+      },
+      closeMenu: () => { clearTimeout(this.hoverTimer); this.setState({ menuOpen: false }); },
+      photoFilter: this.props.photoTone === "mono" ? "grayscale(1) contrast(1.04)" : "none",
+      open0: () => this.openArtist(0), open1: () => this.openArtist(1),
+      open2: () => this.openArtist(2), open3: () => this.openArtist(3),
+      detailOpen: di !== null,
+      detailIndex: "CREATOR " + (di == null ? 1 : di + 1) + " / " + ARTISTS.length,
+      detailName: a.name, detailJa: a.ja,
+      show0: di === 0 ? "1" : "0", show1: di === 1 ? "1" : "0",
+      show2: di === 2 ? "1" : "0", show3: di === 3 ? "1" : "0",
+      detailLines: a.lines, detailLinks: a.links,
+      closeDetail: this.closeDetail,
+      prevArtist: (e) => { e.stopPropagation(); this.step(-1); },
+      nextArtist: (e) => { e.stopPropagation(); this.step(1); },
+      stop: (e) => e.stopPropagation(),
+      mapOpen: s.mapOpen, openMap: this.openMap, closeMap: this.closeMap
+    };
+  }
+}
+
+</script>
+</body>
+</html>
